@@ -27,6 +27,7 @@ public class PadActivity extends AppCompatActivity {
     private String ip;
     private Socket m_pcSocket;
     private OutputStream out;
+    private InputStream input;
     private ProgressDialog dialog;
     private Handler handler;
     @Override
@@ -75,14 +76,24 @@ public class PadActivity extends AppCompatActivity {
         public void run() {
             int pcPort = 40;
             try {
+                byte [] recvBuf = new byte[2];
                 m_pcSocket = new Socket(ip,pcPort);
-                out = m_pcSocket.getOutputStream();
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
                         dialog.dismiss();
                     }
                 });
+                out = m_pcSocket.getOutputStream();
+                input = m_pcSocket.getInputStream();
+                input.read(recvBuf);
+
+                Bundle bundle = new Bundle();
+                bundle.putString("result", new String(recvBuf));
+                Message connMsg = new Message();
+                connMsg.what = 1;
+                connMsg.setData(bundle);
+                ConnectionHandler.sendMessage(connMsg);
             }catch (Exception e){
                 System.out.println("Error:" + e.toString());
                 handler.post(new Runnable() {
@@ -92,6 +103,18 @@ public class PadActivity extends AppCompatActivity {
                     }
                 });
             }
+        }
+    };
+
+    private Handler ConnectionHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case 1:
+                    Toast.makeText(PadActivity.this,msg.getData().getString("result"),Toast.LENGTH_SHORT).show();
+                    break;
+            }
+            super.handleMessage(msg);
         }
     };
 
