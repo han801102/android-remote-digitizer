@@ -1,5 +1,6 @@
 package com.han.remotedigitizer;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -10,6 +11,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -25,18 +27,24 @@ public class PadActivity extends AppCompatActivity {
     private String ip;
     private Socket m_pcSocket;
     private OutputStream out;
+    private ProgressDialog dialog;
+    private Handler handler;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pad);
         Intent intent = this.getIntent();
         ip = intent.getStringExtra("ip");
+        dialog = ProgressDialog.show(PadActivity.this,"Connecting","Please wait...");
+        handler = new Handler();
         Thread mThread = new Thread(mThreadRunnable);
         mThread.start();
 
 
         printUsrInput  = (TextView)findViewById(R.id.textView2);
         usrInput = (EditText)findViewById(R.id.editText2);
+        usrInput.requestFocus();
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         usrInput.addTextChangedListener(
                 new TextWatcher() {
                     @Override
@@ -69,8 +77,20 @@ public class PadActivity extends AppCompatActivity {
             try {
                 m_pcSocket = new Socket(ip,pcPort);
                 out = m_pcSocket.getOutputStream();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dialog.dismiss();
+                    }
+                });
             }catch (Exception e){
                 System.out.println("Error:" + e.toString());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dialog.dismiss();
+                    }
+                });
             }
         }
     };
