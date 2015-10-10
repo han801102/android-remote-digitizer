@@ -2,6 +2,7 @@ package com.han.remotedigitizer;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
@@ -36,13 +37,22 @@ public class PadActivity extends AppCompatActivity {
         setContentView(R.layout.activity_pad);
         Intent intent = this.getIntent();
         ip = intent.getStringExtra("ip");
-        dialog = ProgressDialog.show(PadActivity.this,"Connecting","Please wait...");
+        dialog = new ProgressDialog(PadActivity.this);
+        dialog.setMessage("Please wait...");
+        dialog.setTitle("Connecting");
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+        //dialog = ProgressDialog.show(PadActivity.this,"Connecting","Please wait...");
         handler = new Handler();
         Thread mThread = new Thread(mThreadRunnable);
         mThread.start();
 
 
-        printUsrInput  = (TextView)findViewById(R.id.textView2);
         usrInput = (EditText)findViewById(R.id.editText2);
         usrInput.requestFocus();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -61,7 +71,6 @@ public class PadActivity extends AppCompatActivity {
                             }catch (Exception e){
                                 System.out.println("Error:" + e.toString());
                             }
-                            printUsrInput.setText( s);
                         }
                     }
 
